@@ -1,34 +1,62 @@
 import React, { useState } from 'react';
+import AuthService from '../../services/AuthService';
 import s from './login.module.scss';
 
 function Login() {
     const [username, addUsername] = useState('');
     const [password, addPassword] = useState('');
 
+    const [isAuth, setAuth] = useState(false);
+
+    const auth = (e) => {
+        e.preventDefault();
+        const userData = {
+            username: username,
+            password: password,
+        };
+
+        new AuthService().auth(userData)
+            .then(response => {
+                setAuth(true);
+                localStorage.setItem('token', response.data.token);
+            })
+            .catch(function (error) {
+                if (error.response.status === 401) {
+                    setAuth(false);
+                }
+            });
+    }
+
     return (
-        <form className={s.content}>
-            <div className={s.green_block}>
-                <div className={s.login_area}>
-                    <h1 className={s.label}>УЧЕБНАЯ НАГРУЗКА</h1>
-                    <div>
-                        <p>Логин</p>
-                        <input
-                            required
-                            value={username}
-                            onChange={(e) => addUsername(e.target.value)} />
-                    </div>
-                    <div>
-                        <p>Пароль</p>
-                        <input
-                            required
-                            type='password'
-                            value={password}
-                            onChange={(e) => addPassword(e.target.value)} />
-                    </div>
-                    <a href="/"><h3>Забыли пароль?</h3></a>
-                    <button>Войти</button>
+        <form className={s.content} onSubmit={(e) => auth(e)}>
+            {isAuth ?
+                <div>
+                    {window.location.replace("/")}
                 </div>
-            </div>
+                :
+                <div className={s.green_block}>
+                    <div className={s.login_area}>
+                        <h1 className={s.label}>УЧЕБНАЯ НАГРУЗКА</h1>
+                        <div>
+                            <p>Логин</p>
+                            <input
+                                required
+                                value={username}
+                                onChange={(e) => addUsername(e.target.value)} />
+                        </div>
+                        <div>
+                            <p>Пароль</p>
+                            <input
+                                required
+                                type='password'
+                                value={password}
+                                onChange={(e) => addPassword(e.target.value)} />
+                        </div>
+                        <a href="/"><h3>Забыли пароль?</h3></a>
+                        <button>Войти</button>
+                    </div>
+                </div>
+            }
         </form>
     )
 }
