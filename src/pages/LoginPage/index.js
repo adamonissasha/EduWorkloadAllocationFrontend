@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import AuthService from '../../services/AuthService';
 import s from './login.module.scss';
+import Notification from '../../modalWindow/Notification';
 
 function Login() {
     const [username, addUsername] = useState('');
     const [password, addPassword] = useState('');
 
     const [isAuth, setAuth] = useState(false);
+
+    const [notificationActive, setNotificationActive] = useState(false);
+    const [notificationText, setNotificationText] = useState("");
 
     const auth = (e) => {
         e.preventDefault();
@@ -22,6 +26,8 @@ function Login() {
             })
             .catch(function (error) {
                 if (error.response.status === 401) {
+                    setNotificationActive(true);
+                    setNotificationText("НЕВЕРНЫЙ ЛОГИН ИЛИ ПАРОЛЬ");
                     setAuth(false);
                 }
             });
@@ -55,6 +61,7 @@ function Login() {
                         <a href="/"><h3>Забыли пароль?</h3></a>
                         <button>Войти</button>
                     </div>
+                    {notificationActive && <Notification setActive={setNotificationActive} title="Ошибка" text={notificationText} />}
                 </div>
             }
         </form>

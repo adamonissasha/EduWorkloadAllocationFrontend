@@ -1,0 +1,23 @@
+.modal {
+    height: 100px;
+    background-color: #F8F8F8;
+    z-index: 1;
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+
+    img {
+        width: 70px;
+        margin: 15px;
+    }
+
+    p {
+        max-width: 300px;
+        font-size: 17px;
+        font-weight: 100;
+        margin-right: 30px;
+    }
+}
