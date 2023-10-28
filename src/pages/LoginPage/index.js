@@ -37,7 +37,7 @@ function Login() {
         <form className={s.content} onSubmit={(e) => auth(e)}>
             {isAuth ?
                 <div>
-                    {window.location.replace("/")}
+                    {window.location.replace("/admin")}
                 </div>
                 :
                 <div className={s.green_block}>
