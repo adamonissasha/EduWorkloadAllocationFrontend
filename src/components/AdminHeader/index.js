@@ -1,6 +1,18 @@
 import s from './adminHeader.module.scss';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import AgreeWindow from '../../modalWindow/AgreeModalWindow';
 
 function AdminHeader() {
+    const [isAgreeWindowActive, setAgreeWindowActive] = useState(false);
+    const navigate = useNavigate();
+
+    const logout = () => {
+        localStorage.removeItem("user")
+        setAgreeWindowActive(false)
+        navigate("/login")
+    }
+
     return (
         <div className={s.header}>
             <div className={s.label}>
@@ -19,11 +31,18 @@ function AdminHeader() {
                     <div className={s.text}>ЛИЧНЫЙ КАБИНЕТ</div>
                 </div>
 
-                <div class={s.logout_container}>
+                <div class={s.logout_container} onClick={() => setAgreeWindowActive(true)}>
                     <img src="../img/logout.png" alt="exit" />
                     <div className={s.text}>ВЫЙТИ</div>
                 </div>
             </div>
+            {
+                isAgreeWindowActive &&
+                <AgreeWindow
+                    setActive={setAgreeWindowActive}
+                    fun={logout}
+                    text="ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ ВЫЙТИ ИЗ АККАУНТА?" />
+            }
         </div >
     );
 }
