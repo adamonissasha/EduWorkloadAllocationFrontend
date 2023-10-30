@@ -21,12 +21,12 @@ function AdminHeader() {
             </div>
 
             <div className={s.buttons}>
-                <div class={s.users_container}>
+                <div class={s.users_container} onClick={() => navigate("/admin")}>
                     <img src='../img/work-with-users.png' alt="users"></img>
                     <div className={s.text}>ПОЛЬЗОВАТЕЛИ</div>
                 </div>
 
-                <div class={s.account_container}>
+                <div class={s.account_container} onClick={() => navigate("/personal-area")}>
                     <img src='../img/account.png' alt='account'></img>
                     <div className={s.text}>ЛИЧНЫЙ КАБИНЕТ</div>
                 </div>
