@@ -1,16 +1,18 @@
 import Header from '../../components/Header';
-import s from './department.module.scss';
+import s from './course.module.scss';
 import Menu from '../../components/Menu';
 import React, { useState } from 'react';
+import CourseService from '../../services/CourseService';
 import DepartmentService from '../../services/DepartmentService';
 import AgreeWindow from '../../modalWindow/AgreeModalWindow';
 import Notification from '../../modalWindow/Notification';
 
-function DepartmentPage() {
-    const [departments, setDepartments] = useState([]);
+function CoursePage() {
+    const [courses, setCourses] = useState([]);
     const [name, setName] = useState('');
     const [abbreviation, setAbbreviation] = useState('');
-    const [phone, setPhone] = useState('');
+    const [department, setDepartment] = useState(null);
+    const [departments, setDepartments] = useState([]);
     const [selectedRow, setSelectedRow] = useState(null);
     const [isEdit, setIsEdit] = useState(false);
     const [isAgreeWindowActive, setAgreeWindowActive] = useState(false);
@@ -18,37 +20,44 @@ function DepartmentPage() {
     const [notificationText, setNotificationText] = useState("");
 
     React.useEffect(() => {
+        new CourseService().getAllCourses()
+            .then(({ data }) => setCourses(data));
         new DepartmentService().getAllDepartments()
-            .then(({ data }) => setDepartments(data));
+            .then(({ data }) => {
+                setDepartments(data)
+                if (data.length > 0) {
+                    setDepartment(data[0]);
+                }
+            });
     }, []);
 
-    const handleDepartmentClick = (department) => {
-        setSelectedRow(department);
+    const handleCourseClick = (course) => {
+        setSelectedRow(course);
     };
 
     const handleAddButtonClick = () => {
         setName("");
         setAbbreviation("");
-        setPhone("");
+        setDepartment(departments[0]);
         setIsEdit(false);
     };
 
     const handleEditButtonClick = () => {
         if (selectedRow === null) {
             setNotificationActive(true);
-            setNotificationText("ВЫБЕРИТЕ КАФЕДРУ ДЛЯ РЕДАКТИРОВАНИЯ");
+            setNotificationText("ВЫБЕРИТЕ ДИСЦИПЛИНУ ДЛЯ РЕДАКТИРОВАНИЯ");
         } else {
             setIsEdit(true);
             setName(selectedRow.name);
             setAbbreviation(selectedRow.abbreviation);
-            setPhone(selectedRow.phone);
+            setDepartment(selectedRow.department);
         }
     };
 
     const handleDeleteButtonClick = () => {
         if (selectedRow === null) {
             setNotificationActive(true);
-            setNotificationText("ВЫБЕРИТЕ КАФЕДРУ ДЛЯ УДАЛЕНИЯ");
+            setNotificationText("ВЫБЕРИТЕ ДИСЦИПЛИНУ ДЛЯ УДАЛЕНИЯ");
         } else {
             setIsEdit(false);
             setAgreeWindowActive(true);
@@ -58,43 +67,44 @@ function DepartmentPage() {
     const handleSaveButtonClick = (e) => {
         e.preventDefault();
         if (isEdit) {
-            const dep = {
+            const updatedCourse = {
                 "name": name,
                 "abbreviation": abbreviation,
-                "phone": phone
+                "departmentId": department.id
             }
-            new DepartmentService().editDepartment(selectedRow.id, dep)
+            new CourseService().editCourse(selectedRow.id, updatedCourse)
                 .then(response => {
-                    const updatedDepartments = departments.map(department => {
-                        if (department.id === selectedRow.id) {
-                            return { ...department, ...dep };
+                    const updatedCourses = courses.map(course => {
+                        if (course.id === selectedRow.id) {
+                            return { ...course, ...{ name, abbreviation, department } };
                         }
-                        return department;
+                        return course;
                     });
-                    setDepartments(updatedDepartments);
+                    setCourses(updatedCourses);
                 })
         } else {
-            const department = {
+            const course = {
                 "name": name,
                 "abbreviation": abbreviation,
-                "phone": phone
+                "departmentId": department.id
             }
-            new DepartmentService().addDepartment(department)
-                .then(({ data: newDepartment }) => {
-                    setDepartments(prevDepartments => [...prevDepartments, newDepartment]);
+            new CourseService().addCourse(course)
+                .then(({ data: newCourse }) => {
+                    setCourses(prevCourses => [...prevCourses, newCourse]);
                 })
         }
         setName('')
         setAbbreviation('')
-        setPhone('')
+        setDepartment(departments[0])
     };
 
-    const deleteDepartment = () => {
+    const deleteCourse = () => {
         setAgreeWindowActive(false);
-        new DepartmentService().deleteDepartment(selectedRow.id)
+        setSelectedRow(null)
+        new CourseService().deleteCourse(selectedRow.id)
             .then(() => {
-                setDepartments(prevDepartments =>
-                    prevDepartments.filter(department => department.id !== selectedRow.id)
+                setCourses(prevCourses =>
+                    prevCourses.filter(course => course.id !== selectedRow.id)
                 );
             })
     };
@@ -116,28 +126,27 @@ function DepartmentPage() {
                                 <th>№</th>
                                 <th>Название</th>
                                 <th>Аббревиатура</th>
-                                <th>Номер телефона</th>
+                                <th>Кафедра</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {departments.map((department) => (
+                            {courses.map((course) => (
                                 <tr
-                                    key={department.id}
-                                    onClick={() => handleDepartmentClick(department)}
+                                    key={course.id}
+                                    onClick={() => handleCourseClick(course)}
                                     style={{
-                                        backgroundColor: (selectedRow === null || selectedRow.id !== department.id) ? '' : '#cfcfcf'
-                                    }}
-                                >
-                                    <td>{department.id}</td>
-                                    <td>{department.name}</td>
-                                    <td>{department.abbreviation}</td>
-                                    <td>{department.phone}</td>
+                                        backgroundColor: (selectedRow === null || selectedRow.id !== course.id) ? '' : '#cfcfcf'
+                                    }}>
+                                    <td>{course.id}</td>
+                                    <td>{course.name}</td>
+                                    <td>{course.abbreviation}</td>
+                                    <td>{course.department.abbreviation}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-                <form className={s.edit_area}>
+                <form className={s.edit_area} onSubmit={(e) => handleSaveButtonClick(e)}>
                     <p>Название</p>
                     <input
                         required
@@ -150,24 +159,31 @@ function DepartmentPage() {
                         value={abbreviation}
                         onChange={(e) => setAbbreviation(e.target.value)}
                     />
-                    <p>Номер телефона</p>
-                    <input
-                        required
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                    />
-                    <button onClick={handleSaveButtonClick}>Сохранить</button>
+                    <p>Кафедра</p>
+                    <select
+                        value={department ? department.id : ''} // Предположим, что в department хранится объект с полем id
+                        onChange={(e) => {
+                            const selectedDepartment = departments.find(dep => dep.id === parseInt(e.target.value));
+                            setDepartment(selectedDepartment);
+                        }}>
+                        {departments.map((dep) => (
+                            <option key={dep.id} value={dep.id}>
+                                {dep.abbreviation}
+                            </option>
+                        ))}
+                    </select>
+                    <button>Сохранить</button>
                 </form>
             </div>
-            {
-                isAgreeWindowActive &&
+            {isAgreeWindowActive &&
                 <AgreeWindow
                     setActive={setAgreeWindowActive}
-                    fun={deleteDepartment}
-                    text={`Вы уверены, что хотите удалить кафедру \"${selectedRow.name}\"?`} />}
+                    fun={deleteCourse}
+                    text={`Вы уверены, что хотите удалить кафедру \"${selectedRow.name}\"?`} />
+            }
             {notificationActive && <Notification setActive={setNotificationActive} title="Ошибка" text={notificationText} />}
-        </div>
+        </div >
     )
 }
 
-export default DepartmentPage;
+export default CoursePage;
