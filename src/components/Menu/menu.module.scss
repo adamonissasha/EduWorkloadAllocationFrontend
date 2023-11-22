@@ -1,0 +1,46 @@
+.buttons {
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+
+    button {
+        width: 20%;
+        border: 1px solid #e3e3e3;
+        border-right: none;
+        margin: 0;
+        border-radius: 0;
+        font-size: 17px;
+
+        &:hover {
+            background-color: #e3e3e3;
+            transform: none;
+        }
+    }
+
+    .choosen {
+        color: #3A3A3A;
+        padding-bottom: 5px;
+        text-decoration: none;
+
+        &:hover {
+            cursor: pointer;
+            background-color: #FFD273;
+        }
+    }
+
+    .unchoosen {
+        color: #3A3A3A;
+        text-decoration: none;
+        background-color: white;
+
+        &:hover {
+            cursor: pointer;
+            background-color: #FFD273;
+        }
+    }
+}

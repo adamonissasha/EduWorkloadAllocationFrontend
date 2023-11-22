@@ -37,3 +37,19 @@ button {
     transform: scale(1.05);
   }
 }
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* Фон полосы прокрутки */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Стиль полосы прокрутки */
+::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 10px;
+  border: 3px solid #f1f1f1;
+}
