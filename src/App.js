@@ -5,6 +5,7 @@ import PersonalArea from './pages/PersonalAreaPage';
 import DepartmentPage from './pages/DepartmentPage';
 import CoursePage from './pages/CoursePage';
 import NotFoundPage from './pages/NotFoundPage';
+import ServerErrorPage from './pages/ServerErrorPage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path="/personal-area" element={<PersonalArea />} />
       <Route path="/department" element={<DepartmentPage />} />
       <Route path="/course" element={<CoursePage />} />
+      <Route path="server/error" element={<ServerErrorPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
