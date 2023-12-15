@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
 import PersonalArea from './pages/PersonalAreaPage';
 import DepartmentPage from './pages/DepartmentPage';
+import EmployeePage from './pages/EmployeePage';
 import CoursePage from './pages/CoursePage';
 import SpecialityPage from './pages/SpecialityPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -16,6 +17,7 @@ function App() {
       <Route path="/personal-area" element={<PersonalArea />} />
       <Route path="/department" element={<DepartmentPage />} />
       <Route path="/speciality" element={<SpecialityPage />} />
+      <Route path="/employee" element={<EmployeePage />} />
       <Route path="/course" element={<CoursePage />} />
       <Route path="server/error" element={<ServerErrorPage />} />
       <Route path="*" element={<NotFoundPage />} />

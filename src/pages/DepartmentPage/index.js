@@ -1,10 +1,10 @@
 import Header from '../../components/Header';
 import s from './department.module.scss';
 import Menu from '../../components/Menu';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import DepartmentService from '../../services/DepartmentService';
 import AgreeWindow from '../../modalWindow/AgreeModalWindow';
-import Notification from '../../modalWindow/Notification';
+import CenterNotification from '../../modalWindow/CenterNotification';
 
 function DepartmentPage() {
     const [departments, setDepartments] = useState([]);
@@ -16,8 +16,71 @@ function DepartmentPage() {
     const [isAgreeWindowActive, setAgreeWindowActive] = useState(false);
     const [notificationActive, setNotificationActive] = useState(false);
     const [notificationText, setNotificationText] = useState("");
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredDepartments, setFilteredDepartments] = useState([]);
+    const [formName, setFormName] = useState("Добавление кафедры")
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+    const [editAreaActive, setEditAreaActive] = useState(false)
 
-    React.useEffect(() => {
+    const sortTable = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+
+        const sortedData = [...departments].sort((a, b) => {
+            const valueA = a[key];
+            const valueB = b[key];
+
+            if (valueA < valueB) {
+                return direction === 'ascending' ? -1 : 1;
+            }
+            if (valueA > valueB) {
+                return direction === 'ascending' ? 1 : -1;
+            }
+            return 0;
+        });
+        setDepartments(sortedData);
+    };
+
+    const filterData = () => {
+        if (searchTerm) {
+            let filteredData = [...departments];
+
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+
+                filteredData = filteredData.filter(
+                    (sp) => {
+                        const name = sp.name ? sp.name.toLowerCase() : '';
+                        const abbreviation = sp.abbreviation ? sp.abbreviation.toLowerCase() : '';
+                        const phone = sp.phone ? sp.phone.toLowerCase() : '';
+
+                        return (
+                            name.includes(term) ||
+                            abbreviation.includes(term) ||
+                            phone.includes(term)
+                        );
+                    }
+                );
+            }
+
+            setFilteredDepartments(filteredData);
+        } else {
+            setFilteredDepartments(departments);
+        }
+    };
+
+    useEffect(() => {
+        filterData();
+    }, [departments, searchTerm]);
+
+    const cleanSSF = () => {
+        setSearchTerm("")
+    }
+
+    useEffect(() => {
         new DepartmentService().getAllDepartments()
             .then(({ data }) => setDepartments(data));
     }, []);
@@ -27,18 +90,25 @@ function DepartmentPage() {
     };
 
     const handleAddButtonClick = () => {
+        setEditAreaActive(!editAreaActive)
         setName("");
         setAbbreviation("");
         setPhone("");
         setIsEdit(false);
+        setFormName("Добавление кафедры")
     };
 
     const handleEditButtonClick = () => {
         if (selectedRow === null) {
             setNotificationActive(true);
-            setNotificationText("ВЫБЕРИТЕ КАФЕДРУ ДЛЯ РЕДАКТИРОВАНИЯ");
+            if (editAreaActive) {
+                setEditAreaActive(false)
+            }
+            setNotificationText("Выберите кафедру для редактирования!");
         } else {
+            setFormName("Редактирование кафедры")
             setIsEdit(true);
+            setEditAreaActive(!editAreaActive)
             setName(selectedRow.name);
             setAbbreviation(selectedRow.abbreviation);
             setPhone(selectedRow.phone);
@@ -48,7 +118,7 @@ function DepartmentPage() {
     const handleDeleteButtonClick = () => {
         if (selectedRow === null) {
             setNotificationActive(true);
-            setNotificationText("ВЫБЕРИТЕ КАФЕДРУ ДЛЯ УДАЛЕНИЯ");
+            setNotificationText("Выберите кафедру для удаления!");
         } else {
             setIsEdit(false);
             setAgreeWindowActive(true);
@@ -72,7 +142,15 @@ function DepartmentPage() {
                         return department;
                     });
                     setDepartments(updatedDepartments);
+                    setEditAreaActive(!editAreaActive)
+                    setName('')
+                    setAbbreviation('')
+                    setPhone('')
                 })
+                .catch(error => {
+                    setNotificationActive(true)
+                    setNotificationText(error.response.data.message)
+                });
         } else {
             const department = {
                 "name": name,
@@ -82,11 +160,16 @@ function DepartmentPage() {
             new DepartmentService().addDepartment(department)
                 .then(({ data: newDepartment }) => {
                     setDepartments(prevDepartments => [...prevDepartments, newDepartment]);
+                    setEditAreaActive(!editAreaActive)
+                    setName('')
+                    setAbbreviation('')
+                    setPhone('')
                 })
+                .catch(error => {
+                    setNotificationActive(true)
+                    setNotificationText(error.response.data.message)
+                });
         }
-        setName('')
-        setAbbreviation('')
-        setPhone('')
     };
 
     const deleteDepartment = () => {
@@ -102,32 +185,70 @@ function DepartmentPage() {
     return (
         <div>
             <Header />
-            <Menu />
+            <Menu page="department" />
             <div className={s.content}>
-                <div className={s.table}>
+                <div className={s.work_panel}>
                     <div className={s.buttons}>
                         <button onClick={handleAddButtonClick}><img src='../../img/plus.png' alt="add" /></button>
                         <button onClick={handleEditButtonClick}><img src='../../img/edit.png' alt="edit" /></button>
                         <button onClick={handleDeleteButtonClick}><img src='../../img/delete.png' alt="delete" /></button>
                     </div>
+                    <div className={s.ssf}>
+                        <div className={s.block}>
+                            <p>Поиск</p>
+                            <input
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    filterData();
+                                }}
+                            />
+                        </div>
+                        <button onClick={() => cleanSSF()}>Сбросить</button>
+                    </div>
+                </div>
+                {editAreaActive ?
+                    <form className={s.edit_area} onSubmit={handleSaveButtonClick}>
+                        <h2>{formName}</h2>
+                        <p>Название</p>
+                        <input
+                            required
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
+                        <p>Аббревиатура</p>
+                        <input
+                            required
+                            value={abbreviation}
+                            onChange={(e) => setAbbreviation(e.target.value)}
+                        />
+                        <p>Номер телефона</p>
+                        <input
+                            required
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                        />
+                        <button>Сохранить</button>
+                    </form> : <></>
+                }
+                <div className={s.table}>
                     <table>
                         <thead>
                             <tr>
-                                <th>№</th>
-                                <th>Название</th>
-                                <th>Аббревиатура</th>
-                                <th>Номер телефона</th>
+                                <th onClick={() => sortTable('id')}>№</th>
+                                <th onClick={() => sortTable('name')}>Название</th>
+                                <th onClick={() => sortTable('abbreviation')}>Аббревиатура</th>
+                                <th onClick={() => sortTable('phone')}>Номер телефона</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {departments.map((department) => (
+                            {filteredDepartments.map((department) => (
                                 <tr
                                     key={department.id}
                                     onClick={() => handleDepartmentClick(department)}
                                     style={{
                                         backgroundColor: (selectedRow === null || selectedRow.id !== department.id) ? '' : '#cfcfcf'
-                                    }}
-                                >
+                                    }}>
                                     <td>{department.id}</td>
                                     <td>{department.name}</td>
                                     <td>{department.abbreviation}</td>
@@ -137,27 +258,6 @@ function DepartmentPage() {
                         </tbody>
                     </table>
                 </div>
-                <form className={s.edit_area}>
-                    <p>Название</p>
-                    <input
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                    <p>Аббревиатура</p>
-                    <input
-                        required
-                        value={abbreviation}
-                        onChange={(e) => setAbbreviation(e.target.value)}
-                    />
-                    <p>Номер телефона</p>
-                    <input
-                        required
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                    />
-                    <button onClick={handleSaveButtonClick}>Сохранить</button>
-                </form>
             </div>
             {
                 isAgreeWindowActive &&
@@ -165,7 +265,7 @@ function DepartmentPage() {
                     setActive={setAgreeWindowActive}
                     fun={deleteDepartment}
                     text={`Вы уверены, что хотите удалить кафедру \"${selectedRow.name}\"?`} />}
-            {notificationActive && <Notification setActive={setNotificationActive} title="Ошибка" text={notificationText} />}
+            {notificationActive && <CenterNotification setActive={setNotificationActive} title="Ошибка" text={notificationText} />}
         </div>
     )
 }
