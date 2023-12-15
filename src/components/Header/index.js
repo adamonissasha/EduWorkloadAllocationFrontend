@@ -21,12 +21,12 @@ function Header() {
             </div>
 
             <div className={s.buttons}>
-                <div class={s.account_container} onClick={() => navigate("/personal-area")}>
+                <div className={s.account_container} onClick={() => navigate("/personal-area")}>
                     <img src='../img/account.png' alt='account'></img>
                     <div className={s.text}>ЛИЧНЫЙ КАБИНЕТ</div>
                 </div>
 
-                <div class={s.logout_container} onClick={() => setAgreeWindowActive(true)}>
+                <div className={s.logout_container} onClick={() => setAgreeWindowActive(true)}>
                     <img src="../img/logout.png" alt="exit" />
                     <div className={s.text}>ВЫЙТИ</div>
                 </div>
